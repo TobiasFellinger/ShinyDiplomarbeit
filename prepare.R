@@ -1,6 +1,6 @@
 library("SimNPH")
 
-design_vars_all <- c("hazard_ctrl", "random_withdrawal", "n_pat", "recruitment")
+design_vars_all <- c("hazard_ctrl", "random_withdrawal", "n_pat_design", "recruitment")
 design_vars_delayed     <- c("delay", "hr_after_onset", design_vars_all)
 design_vars_crossing    <- c("crossing", "hr_before", "hr_after", design_vars_all)
 design_vars_progression <- c("hr_death_before_prog", "hr_after_prog_ctrl", "prog_rate_ctrl", "hr_prog", design_vars_all)
@@ -41,5 +41,5 @@ datasets <- list(
   progression = prepare_data(progression, design_vars_progression)
 )
 
-saveRDS(datasets, "app/datasets.Rds")
+saveRDS(datasets, "datasets.Rds")
  
