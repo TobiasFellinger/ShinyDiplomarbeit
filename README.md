@@ -1,0 +1,1 @@
+Shiny app to present the simulated scenarios and simulation results of my masters thesis.
