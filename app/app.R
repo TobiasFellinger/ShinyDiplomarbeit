@@ -1,76 +1,27 @@
 
+# TODO: 
+# * port to r-shiny
+# * change column names
+# * plot annotations for coverage (rect), rejection (hline)
+# * table for scenario summary statistics
+# 
+# * maybe: plot: colour area between survival curves -> rmst
+
 # packages ----------------------------------------------------------------
 
 library("shiny")
 library("sortable")
 library("ggplot2")
 library("patchwork")
+library("miniPCH")
 
 # data --------------------------------------------------------------------
 
 datasets <- readRDS("../datasets.Rds")
-
-
-# datasets <- list(delayed = list(design_variables = c("delay", "hr_after_onset", 
-#                                                      "hazard_ctrl", "random_withdrawal", "n_pat", "recruitment"), 
-#                                 methods = c("ahr_6m", "ahr_12m", "gahr_6m", "gahr_12m", "median_surv", 
-#                                             "milestone_6m", "milestone_12m", "rmst_diff_6m", "rmst_diff_12m", 
-#                                             "cox", "aft_weibull", "aft_lognormal", "diff_med_weibull", 
-#                                             "fh_0_0", "fh_0_1", "fh_1_0", "fh_1_1", "logrank", "max_combo", 
-#                                             "modest_6", "modest_8", "fh_gs_0_0", "fh_gs_0_1", "fh_gs_1_0", 
-#                                             "fh_gs_1_1", "logrank_gs", "max_combo_gs", "modest_gs_6", 
-#                                             "modest_gs_8"), filter_values = list(delay = c(0, 60.875, 
-#                                                                                            121.75, 182.625, 243.5), hr_after_onset = c(0.7, 0.8, 0.9, 
-#                                                                                                                                        1), hazard_ctrl = c(0.00189773355389444, 0.000948866776947221, 
-#                                                                                                                                                            0.000632577851298148), random_withdrawal = c(0, 0.000189773355389444
-#                                                                                                                                                            ), n_pat = c(NA, 300, 600, 1000), recruitment = c(0, 182.625
-#                                                                                                                                                            ))), crossing = list(design_variables = c("crossing", "hr_before", 
-#                                                                                                                                                                                                      "hr_after", "hazard_ctrl", "random_withdrawal", "n_pat", "recruitment"
-#                                                                                                                                                            ), methods = c("ahr_6m", "ahr_12m", "gahr_6m", "gahr_12m", "median_surv", 
-#                                                                                                                                                                           "milestone_6m", "milestone_12m", "rmst_diff_6m", "rmst_diff_12m", 
-#                                                                                                                                                                           "cox", "aft_weibull", "aft_lognormal", "diff_med_weibull", "fh_0_0", 
-#                                                                                                                                                                           "fh_0_1", "fh_1_0", "fh_1_1", "logrank", "max_combo", "modest_6", 
-#                                                                                                                                                                           "modest_8", "fh_gs_0_0", "fh_gs_0_1", "fh_gs_1_0", "fh_gs_1_1", 
-#                                                                                                                                                                           "logrank_gs", "max_combo_gs", "modest_gs_6", "modest_gs_8"), 
-#                                                                                                                                                            filter_values = list(crossing = c(0, 60.875, 121.75, 182.625, 
-#                                                                                                                                                                                              243.5), hr_before = c(1.42857142857143, 1.25, 1.11111111111111
-#                                                                                                                                                                                              ), hr_after = c(0.7, 0.8, 0.9), hazard_ctrl = c(0.00189773355389444, 
-#                                                                                                                                                                                                                                              0.000948866776947221, 0.000632577851298148), random_withdrawal = c(0, 
-#                                                                                                                                                                                                                                                                                                                 0.000189773355389444), n_pat = c(NA, 300, 600, 1000), recruitment = c(0, 
-#                                                                                                                                                                                                                                                                                                                                                                                       182.625))), subgroup = list(design_variables = c("hr_trt", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                        "hr_subgroup", "prevalence", "hazard_ctrl", "random_withdrawal", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                        "n_pat", "recruitment"), methods = c("ahr_6m", "ahr_12m", "gahr_6m", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "gahr_12m", "median_surv", "milestone_6m", "milestone_12m", "rmst_diff_6m", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "rmst_diff_12m", "cox", "aft_weibull", "aft_lognormal", "diff_med_weibull", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "fh_0_0", "fh_0_1", "fh_1_0", "fh_1_1", "logrank", "max_combo", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "modest_6", "modest_8", "fh_gs_0_0", "fh_gs_0_1", "fh_gs_1_0", 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "fh_gs_1_1", "logrank_gs", "max_combo_gs", "modest_gs_6", "modest_gs_8"
-#                                                                                                                                                                                                                                                                                                                                                                                                                                        ), filter_values = list(hr_trt = c(0.8, 0.9, 1, 0.7), hr_subgroup = c(0.7, 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              0.8, 0.9, 1.42857142857143, 1.25, 1.11111111111111), prevalence = c(0.1, 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  0.3, 0.5), hazard_ctrl = c(0.00189773355389444, 0.000948866776947221, 
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             0.000632577851298148), random_withdrawal = c(0, 0.000189773355389444
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ), n_pat = c(NA, 300, 600, 1000), recruitment = c(0, 182.625))), 
-#                  progression = list(design_variables = c("hr_death_before_prog", 
-#                                                          "hr_after_prog_ctrl", "prog_rate_ctrl", "hr_prog", "hazard_ctrl", 
-#                                                          "random_withdrawal", "n_pat", "recruitment"), methods = c("ahr_6m", 
-#                                                                                                                    "ahr_12m", "gahr_6m", "gahr_12m", "median_surv", "milestone_6m", 
-#                                                                                                                    "milestone_12m", "rmst_diff_6m", "rmst_diff_12m", "cox", 
-#                                                                                                                    "aft_weibull", "aft_lognormal", "diff_med_weibull", "fh_0_0", 
-#                                                                                                                    "fh_0_1", "fh_1_0", "fh_1_1", "logrank", "max_combo", "modest_6", 
-#                                                                                                                    "modest_8", "fh_gs_0_0", "fh_gs_0_1", "fh_gs_1_0", "fh_gs_1_1", 
-#                                                                                                                    "logrank_gs", "max_combo_gs", "modest_gs_6", "modest_gs_8"
-#                                                          ), filter_values = list(hr_death_before_prog = c(1, 0.7, 
-#                                                                                                           0.8, 0.9), hr_after_prog_ctrl = c(2, 3), prog_rate_ctrl = 0.00189773355389444, 
-#                                                                                  hr_prog = c(1, 0.7, 0.8, 0.9), hazard_ctrl = c(0.00189773355389444, 
-#                                                                                                                                 0.000948866776947221, 0.000632577851298148), random_withdrawal = c(0, 
-#                                                                                                                                                                                                    0.000189773355389444), n_pat = c(NA, 300, 600, 1000), 
-#                                                                                  recruitment = c(0, 182.625))))
-
+exclude_from_scenario_vars <- c("recruitment", "random_withdrawal", "n_pat_design")
+filter_scenario_values <- c("recruitment"=0, "random_withdrawal"=0, "n_pat_design"=1000, "method"="logrank")
 
 # functions ---------------------------------------------------------------
-
-library("ggplot2")
-library("patchwork")
 
 combined_plot <- function(
     data,
@@ -92,6 +43,9 @@ combined_plot <- function(
   stopifnot(split_var <= length(xvars))
   stopifnot(split_var > 0)
   
+  stopifnot(grid_level > 0)
+  grid_level <- min(grid_level, length(xvars))
+  
   facet_vars_y_sym <- rlang::syms(facet_y_vars)
   facet_vars_x_sym <- rlang::syms(facet_x_vars)
   yvar  <- rlang::sym(yvar)
@@ -99,18 +53,23 @@ combined_plot <- function(
   data <- data |>
     subset(method %in% methods)
   
-  xvars <- rev(xvars)
-  
   # create combined x variable
-  data$x <- dplyr::dense_rank(do.call(interaction, data[, xvars]))
+  data$x <- do.call(interaction, c(data[, xvars], lex.order=TRUE, drop=TRUE)) |>
+    as.integer()
   
   # remove rows with missing yvar
   data <- data |> 
     subset(!is.na(get(yvar)))
   
   # split lines
-  group_vars <- xvars[(length(xvars)-split_var):length(xvars)]
-  data$x_split <- dplyr::dense_rank(do.call(interaction, data[, group_vars]))
+  group_vars <- xvars[1:split_var]
+  data$x_split <- do.call(interaction, c(data[, group_vars], lex.order=TRUE, drop=TRUE)) |>
+    as.integer()
+  
+  # grid breaks
+  grid_vars <- xvars[1:grid_level]
+  data$x_grid <-  do.call(interaction, c(data[, grid_vars], lex.order=TRUE))
+  grid_breaks <- data$x[order(data$x)][!duplicated(data$x_grid[order(data$x)])]
   
   plot_1 <- ggplot2::ggplot(data, ggplot2::aes(
     x=x,
@@ -121,7 +80,11 @@ combined_plot <- function(
   )) +
     ggplot2::geom_line() +
     ggplot2::geom_point(size=4) +
-    # ggplot2::scale_x_discrete(breaks = attr(data, "x_axis_breaks")) +
+    ggplot2::scale_x_continuous(
+      breaks = grid_breaks,
+      minor_breaks = NULL,
+      expand = ggplot2::expansion(0,0)
+    ) +
     ggplot2::theme(
       axis.text.x = ggplot2::element_blank(),
       axis.ticks.x = ggplot2::element_blank(),
@@ -146,6 +109,11 @@ combined_plot <- function(
     ggplot2::ggplot(data_plot2, ggplot2::aes(x=x, y=tmp_yvar, group=method)) +
       ggplot2::geom_step(linewidth=0.25) +
       # ggplot2::geom_point(shape=4) +
+      ggplot2::scale_x_continuous(
+        breaks = grid_breaks,
+        minor_breaks = NULL,
+        expand = ggplot2::expansion(0,0)
+      ) +
       ggplot2::theme_void(
         base_size = 9
       ) +
@@ -180,37 +148,215 @@ combined_plot <- function(
   result
 }
 
+scenario_plot <- function(scenario, type){
+  range_t  <- c(0, 1095.75)
+  range_hr <- c(0.7, 1/0.7)
+  range_s  <- c(0,1)
+  
+  # construct functions
+  if(type %in% c("delayed", "crossing", "subgroup")){
+    funs_a <- miniPCH::pch_functions(
+      t=0, 
+      lambda=scenario$hazard_ctrl
+    )
+  } else {
+    funs_a <- miniPCH::multistate_functions(
+      t = 0,
+      Q = array(matrix(c(
+          -(scenario$hazard_ctrl + scenario$prog_rate_ctrl),     scenario$prog_rate_ctrl,       scenario$hazard_ctrl,
+                                                          0, -scenario$hazard_after_prog, scenario$hazard_after_prog,
+                                                          0,                           0,                          0
+        ), 3, 3, byrow = TRUE),
+        dim=c(3,3,1)
+      ),
+      pi = c(1,0,0),
+      abs = c(0,0,1)
+    )
+  }
+  
+  switch(
+    type,
+    delayed = {
+      if(scenario$delay == 0){
+        funs_b <- miniPCH::pch_functions(
+          t = c(0),
+          lambda = c(scenario$hazard_trt)
+        )
+      } else {
+        funs_b <- miniPCH::pch_functions(
+          t = c(0, scenario$delay),
+          lambda = c(scenario$hazard_ctrl, scenario$hazard_trt)
+        )
+      }
+    },
+    crossing = {
+      if(scenario$crossing == 0){
+        funs_b <- miniPCH::pch_functions(
+          t = c(0),
+          lambda = c(scenario$hazard_trt_after)
+        )
+      } else {
+       funs_b <- miniPCH::pch_functions(
+         t = c(0, scneario$crossing),
+         lambda = c(scenario$hazard_trt_before, scenario$hazard_trt_after)
+       )
+      }
+    },
+    subgroup = {
+      funs_b <- miniPCH::multistate_functions(
+        t = 0,
+        Q = array(matrix(c(
+            -scenario$hazard_subgroup,                    0, scenario$hazard_subgroup,
+                                    0, -scenario$hazard_trt,      scenario$hazard_trt,
+                                    0,                    0,                        0
+          ), 3,3, byrow = TRUE),
+          dim=c(3,3,1)
+        ),
+        pi = c(scenario$prevalence, (1-scenario$prevalence),0),
+        abs = c(0,0,1)
+      )
+    },
+    progression = {
+      funs_b <- miniPCH::multistate_functions(
+        t = 0,
+      Q = array(matrix(c(
+          -(scenario$hazard_trt + scenario$prog_rate_trt),      scenario$prog_rate_trt,        scenario$hazard_trt,
+                                                        0, -scenario$hazard_after_prog, scenario$hazard_after_prog,
+                                                        0,                           0,                          0
+        ), 3, 3, byrow = TRUE),
+        dim=c(3,3,1)
+      ),
+        pi = c(1,0,0),
+        abs = c(0,0,1)
+      )
+    }
+  )
+  
+  hr <- \(t){
+    funs_b$h(t) / funs_a$h(t)
+  }
+  
+  # plot
+  plot_s <- ggplot(NULL) + 
+    stat_function(aes(colour="control"  , lty="control"  ),   fun=funs_a$s) + 
+    stat_function(aes(colour="treatment", lty="treatment"), fun=funs_b$s) + 
+    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") + 
+    scale_y_continuous(limits=range_s, expand=expansion(0,0), name="survival")
+  
+  plot_h <- ggplot(NULL) + 
+    stat_function(aes(colour="control"  , lty="control"  ),   fun=funs_a$h) + 
+    stat_function(aes(colour="treatment", lty="treatment"), fun=funs_b$h) + 
+    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") +
+    scale_y_continuous(name="hazard", expand=expansion(0,0.1))
+  
+  plot_hr <- ggplot(NULL) + 
+    stat_function(fun=hr) + 
+    geom_hline(yintercept = 1, colour="darkgray") +
+    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") +
+    scale_y_continuous(limits=range_hr, expand=expansion(0,0.1), name="hazard ratio")
+  
+  my_colors <- palette.colors(3, "Okabe-Ito")[c(2,3)] |>
+    setNames(c("control", "treatment"))
+  
+  my_lty <- c(1, 3) |>
+    setNames(c("control", "treatment"))
+  
+  
+  patchwork::wrap_plots(plot_s, plot_h, plot_hr) +
+    patchwork::plot_layout(guides = "collect") &
+    ggplot2::theme_bw() &
+    ggplot2::theme(legend.position="bottom") &
+    ggplot2::scale_colour_manual(
+      values = my_colors,
+      name = "group"
+    ) &
+    ggplot2::scale_linetype_manual(
+      values = my_lty,
+      name = "group"
+    )
+}
+
 # ui ----------------------------------------------------------------------
 
 ui <- fluidPage(
-  sidebarLayout(
-    sidebarPanel(
-      selectInput(
-        inputId = "results_scenarioclass",
-        label = "Scenario",
-        choices = names(datasets)
-      ),
-      uiOutput(
-        outputId = "results_methods_ui"
-      ),
-      uiOutput(
-        outputId = "results_yvar_ui"
-      ),
-      uiOutput(
-        outputId = "results_scenariofilter_ui"
-      ),
-      uiOutput(
-        outputId = "results_filters_ui"
-      )
+  titlePanel(title="Simulation Results", windowTitle = "Simulation Results"),
+  tabsetPanel(
+# Tab: Description --------------------------------------------------------
+    tabPanel(
+      "Description",
+      includeHTML("description.html"),
+      style="margin-top:1rem;"
     ),
-    
-    mainPanel(
-      plotOutput("results_plot"),
-      actionButton(
-        inputId = "results_draw",
-        label = "redraw",
-        icon = icon("redo")
-      )
+# Tab: Scenarios ----------------------------------------------------------
+    tabPanel(
+      "Scenarios",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput(
+            inputId = "scenarios_scenarioclass",
+            label = "Scenario",
+            choices = names(datasets)
+          ),
+          uiOutput(
+            outputId = "scenario_scenariofilter_ui"
+          ),
+          width=2
+        ),
+        mainPanel(
+          actionButton(
+            inputId = "scenario_draw",
+            label = "redraw",
+            icon = icon("redo")
+          ),
+          plotOutput(
+            "scenario_plot",
+            width="100%",
+            height="800px"
+          ),
+          width=9
+        )
+      ),
+      style="margin-top:1rem;"
+    ),
+# Tab: Results ------------------------------------------------------------
+    tabPanel(
+      "Simulation Results",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput(
+            inputId = "results_scenarioclass",
+            label = "Scenario",
+            choices = names(datasets)
+          ),
+          uiOutput(
+            outputId = "results_methods_ui"
+          ),
+          uiOutput(
+            outputId = "results_yvar_ui"
+          ),
+          uiOutput(
+            outputId = "results_scenariofilter_ui"
+          ),
+          uiOutput(
+            outputId = "results_filters_ui"
+          ),
+          width=2
+        ),
+        mainPanel(
+          actionButton(
+            inputId = "results_draw",
+            label = "redraw",
+            icon = icon("redo")
+          ),
+          plotOutput(
+            "results_plot",
+            width="100%",
+            height="800px"
+          ),
+          width=9
+        )
+      ),
+      style="margin-top:1rem;"
     )
   )
 )
@@ -218,6 +364,8 @@ ui <- fluidPage(
 # server ------------------------------------------------------------------
 
 server <- function(input, output) {
+
+# Tab Results: reactive values --------------------------------------------
   
   scenario_class <- reactive({
     datasets[[input$results_scenarioclass]]
@@ -227,12 +375,16 @@ server <- function(input, output) {
     input$filter_vars
   })
   
+
+# Tab Results: render UI --------------------------------------------------
+
   output$results_methods_ui <- renderUI({
     selectInput(
       inputId = "results_methods",
       label = "Methods",
       choices = scenario_class()$methods,
-      multiple = TRUE
+      multiple = TRUE,
+      selected = c("logrank", "max_combo")
     )
   })
   
@@ -240,13 +392,14 @@ server <- function(input, output) {
     selectInput(
       inputId = "results_yvar",
       label = "Plot Variable",
+      selected = "rejection_0.025",
       choices = names(scenario_class()$data)
     )
   })
   
   output$results_scenariofilter_ui <- renderUI({
     bucket_list(
-      header="Select Scenario Parameters",
+      header="Scenario Parameters",
       group_name="scenario_params",
       orientation = "vertical",
       add_rank_list(
@@ -281,7 +434,9 @@ server <- function(input, output) {
       )
     })
   })
-  
+
+# Tab Results: Plot -------------------------------------------------------
+
   output$results_plot <- renderPlot({
     tmp_data <- scenario_class()$data 
     tmp_methods <- input$results_methods
@@ -310,6 +465,51 @@ server <- function(input, output) {
       tmp_rows
     )
   }) |> bindEvent(input$results_draw)
+  
+
+# Tab Scenarios: reactive values ------------------------------------------
+
+  scenario_filter_vars <- reactive({
+    res <- datasets[[input$scenarios_scenarioclass]]$filter_values
+    res <- res[!(names(res) %in% exclude_from_scenario_vars)]
+    res
+  })
+
+# Tab Scenarios: renderUI -------------------------------------------------
+
+  output$scenario_scenariofilter_ui <- renderUI({
+    lapply(names(scenario_filter_vars()), \(var){
+      selectInput(
+        inputId = paste0("scenario_filter_", var),
+        label = var,
+        choices = scenario_filter_vars()[[var]]
+      )
+    })
+  })
+
+# Tab Scenarios: Plot -----------------------------------------------------
+  
+  output$scenario_plot <- renderPlot({
+    tmp_data <- datasets[[input$scenarios_scenarioclass]]$data
+    tmp_filter <- names(scenario_filter_vars())
+    
+    tmp_filter_values <- sapply(
+      tmp_filter,
+      \(i){input[[paste0("scenario_filter_", i)]]}
+    )
+    names(tmp_filter_values) <- tmp_filter
+    
+    tmp_filter_values <- c(tmp_filter_values, filter_scenario_values)
+    
+    for(i in names(tmp_filter_values)){
+      tmp_data <- tmp_data[tmp_data[, i] == tmp_filter_values[i], ]
+    }
+    
+    scenario_plot(tmp_data, input$scenarios_scenarioclass)
+    
+    
+  }) |> 
+    bindEvent(input$scenario_draw)
   
 }
 
