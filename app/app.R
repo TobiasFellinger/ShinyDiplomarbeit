@@ -3,7 +3,7 @@
 # * port to r-shiny
 # * change column names
 # * plot annotations for coverage (rect), rejection (hline)
-# * table for scenario summary statistics
+# * convert units and format numbers
 # 
 # * maybe: plot: colour area between survival curves -> rmst
 
@@ -17,9 +17,12 @@ library("miniPCH")
 
 # data --------------------------------------------------------------------
 
-datasets <- readRDS("../datasets.Rds")
+# url <- "http://127.0.0.1:7446"
+url <- ".."
+datasets <- readRDS(paste0(url, "/datasets.Rds"))
 exclude_from_scenario_vars <- c("recruitment", "random_withdrawal", "n_pat_design")
 filter_scenario_values <- c("recruitment"=0, "random_withdrawal"=0, "n_pat_design"=1000, "method"="logrank")
+scenario_table_vars <- c(c("median_survival_trt", "median_survival_ctrl", "rmst_trt_6m", "rmst_ctrl_6m", "gAHR_6m", "AHR_6m", "rmst_trt_12m", "rmst_ctrl_12m", "gAHR_12m", "AHR_12m", "milestone_survival_trt_6m", "milestone_survival_ctrl_6m", "milestone_survival_trt_12m", "milestone_survival_ctrl_12m"))
 
 # functions ---------------------------------------------------------------
 
@@ -247,7 +250,8 @@ scenario_plot <- function(scenario, type){
     stat_function(aes(colour="control"  , lty="control"  ),   fun=funs_a$h) + 
     stat_function(aes(colour="treatment", lty="treatment"), fun=funs_b$h) + 
     scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") +
-    scale_y_continuous(name="hazard", expand=expansion(0,0.1))
+    scale_y_continuous(name="hazard") +
+    expand_limits(y=0)
   
   plot_hr <- ggplot(NULL) + 
     stat_function(fun=hr) + 
@@ -311,7 +315,10 @@ ui <- fluidPage(
           plotOutput(
             "scenario_plot",
             width="100%",
-            height="800px"
+            height="600px"
+          ),
+          tableOutput(
+            "scenario_table"
           ),
           width=9
         )
@@ -474,6 +481,26 @@ server <- function(input, output) {
     res <- res[!(names(res) %in% exclude_from_scenario_vars)]
     res
   })
+  
+  scenario_data <- reactive({
+    tmp_data <- datasets[[input$scenarios_scenarioclass]]$data
+    tmp_filter <- names(scenario_filter_vars())
+    
+    tmp_filter_values <- sapply(
+      tmp_filter,
+      \(i){input[[paste0("scenario_filter_", i)]]}
+    )
+    names(tmp_filter_values) <- tmp_filter
+    
+    tmp_filter_values <- c(tmp_filter_values, filter_scenario_values)
+    
+    for(i in names(tmp_filter_values)){
+      tmp_data <- tmp_data[tmp_data[, i] == tmp_filter_values[i], ]
+    }
+    
+    tmp_data
+  })|> 
+    bindEvent(input$scenario_draw)
 
 # Tab Scenarios: renderUI -------------------------------------------------
 
@@ -490,28 +517,26 @@ server <- function(input, output) {
 # Tab Scenarios: Plot -----------------------------------------------------
   
   output$scenario_plot <- renderPlot({
-    tmp_data <- datasets[[input$scenarios_scenarioclass]]$data
-    tmp_filter <- names(scenario_filter_vars())
-    
-    tmp_filter_values <- sapply(
-      tmp_filter,
-      \(i){input[[paste0("scenario_filter_", i)]]}
-    )
-    names(tmp_filter_values) <- tmp_filter
-    
-    tmp_filter_values <- c(tmp_filter_values, filter_scenario_values)
-    
-    for(i in names(tmp_filter_values)){
-      tmp_data <- tmp_data[tmp_data[, i] == tmp_filter_values[i], ]
-    }
-    
-    scenario_plot(tmp_data, input$scenarios_scenarioclass)
-    
-    
-  }) |> 
-    bindEvent(input$scenario_draw)
+    scenario_plot(scenario_data(), input$scenarios_scenarioclass)
+  }) 
   
-}
+
+# Tab Scenario: Table -----------------------------------------------------
+  
+  output$scenario_table <- renderTable({
+    tmp_data <- scenario_data()[, ] |>
+      subset(select=scenario_table_vars)
+    
+    data.frame(
+      `Summary Statistic` = names(tmp_data),
+      `Value`             = t(tmp_data[1,]),
+      check.names = FALSE
+    )
+  }) 
+  
+  
+  
+} # end server
 
 
 # run ---------------------------------------------------------------------

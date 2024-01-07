@@ -4,6 +4,7 @@ library("SimNPH")
 # * calculate rejection from multiple columns
 # * rename columns
 # * delete all unused columns
+# * convert units and format numbers
 # 
 # * maybe: create own datasets for scenario plots with only one line per relevant scenario selected
 
@@ -28,8 +29,6 @@ subgorup <- readRDS("../github/Simulations/data/simulation_subgroup_WTGP024_2023
 progression <- readRDS("../github/Simulations/data/simulation_disease_progression_WTGP024_2023-11-16_094021/results.Rds") |>
   results_pivot_longer()
 
-
-
 prepare_data <- function(dataset, design_varnames){
   list(
     data = dataset,
@@ -38,7 +37,8 @@ prepare_data <- function(dataset, design_varnames){
     filter_values = lapply(
       design_varnames,
       \(var){
-        unique(dataset[[var]])
+        unique(dataset[[var]]) |>
+          sort()
       }
     ) |> 
       setNames(design_varnames)
