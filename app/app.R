@@ -4,8 +4,6 @@
 # * change column names
 # * plot annotations for coverage (rect), rejection (hline)
 # * convert units and format numbers
-# 
-# * maybe: plot: colour area between survival curves -> rmst
 
 # packages ----------------------------------------------------------------
 
@@ -17,6 +15,7 @@ library("miniPCH")
 
 # data --------------------------------------------------------------------
 
+# TODO: set relative to app url automatically
 # url <- "http://127.0.0.1:7446"
 url <- ".."
 datasets <- readRDS(paste0(url, "/datasets.Rds"))
