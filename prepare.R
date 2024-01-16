@@ -16,17 +16,18 @@ design_vars_crossing    <- c("crossing", "hr_before", "hr_after", design_vars_al
 design_vars_progression <- c("hr_death_before_prog", "hr_after_prog_ctrl", "prog_rate_ctrl", "hr_prog", design_vars_all)
 design_vars_subgroup    <- c("hr_trt", "hr_subgroup", "prevalence", design_vars_all)
 
+data_dir <- "../Diplomarbeit/Simulations/data/"
 
-delayed <- readRDS("../github/Simulations/data/simulation_delayed_effect_WTGP024_2023-10-24_160438/results.Rds") |>
+delayed <- readRDS(paste0(data_dir, "simulation_delayed_effect_WTGP024_2023-10-24_160438/results.Rds")) |>
   results_pivot_longer()
 
-crossing <- readRDS("../github/Simulations/data/simulation_crossing_harzards_WTGP024_2023-11-06_101033/results.Rds") |>
+crossing <- readRDS(paste0(data_dir, "simulation_crossing_harzards_WTGP024_2023-11-06_101033/results.Rds")) |>
   results_pivot_longer()
 
-subgorup <- readRDS("../github/Simulations/data/simulation_subgroup_WTGP024_2023-12-05_095206/results.Rds") |>
+subgorup <- readRDS(paste0(data_dir, "simulation_subgroup_WTGP024_2023-12-05_095206/results.Rds")) |>
   results_pivot_longer()
 
-progression <- readRDS("../github/Simulations/data/simulation_disease_progression_WTGP024_2023-11-16_094021/results.Rds") |>
+progression <- readRDS(paste0(data_dir, "simulation_disease_progression_WTGP024_2023-11-16_094021/results.Rds")) |>
   results_pivot_longer()
 
 prepare_data <- function(dataset, design_varnames){

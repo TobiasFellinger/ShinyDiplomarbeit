@@ -1,6 +1,5 @@
 
 # TODO: 
-# * port to r-shiny
 # * change column names
 # * plot annotations for coverage (rect), rejection (hline)
 # * convert units and format numbers
@@ -15,10 +14,13 @@ library("miniPCH")
 
 # data --------------------------------------------------------------------
 
-# TODO: set relative to app url automatically
+# adjust depending on where this is hosted:
+# shiny-live served with httpuv
 url <- "http://127.0.0.1:7446"
+# shiny local
 # url <- ".."
-# url <- "/usr/share"
+# github pages
+# url <- ""
 datasets <- readRDS(gzcon(url(paste0(url, "/datasets.Rds"))))
 exclude_from_scenario_vars <- c("recruitment", "random_withdrawal", "n_pat_design")
 filter_scenario_values <- c("recruitment"=0, "random_withdrawal"=0, "n_pat_design"=1000, "method"="logrank")
