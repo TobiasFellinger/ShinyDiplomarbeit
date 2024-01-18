@@ -2,7 +2,6 @@
 # TODO: 
 # * change column names
 # * plot annotations for coverage (rect), rejection (hline)
-# * convert units and format numbers
 
 # packages ----------------------------------------------------------------
 
@@ -17,11 +16,12 @@ library("miniPCH")
 # adjust depending on where this is hosted:
 # shiny-live served with httpuv
 # my_url <- "http://127.0.0.1:7446/"
-# shiny local
-# my_url <- "../"
 # shiny-live on github pages
-my_url <- "https://tobiasfellinger.github.io/ShinyDiplomarbeit/"
-datasets <- readRDS(gzcon(url(paste0(my_url, "datasets.Rds"))))
+# my_url <- "https://tobiasfellinger.github.io/ShinyDiplomarbeit/"
+# datasets <- readRDS(gzcon(url(paste0(my_url, "datasets.Rds"))))
+# shiny local
+my_file <- "../"
+datasets <- readRDS(paste0(my_file, "datasets.Rds"))
 exclude_from_scenario_vars <- c("recruitment", "random_withdrawal", "n_pat_design")
 filter_scenario_values <- c("recruitment"=0, "random_withdrawal"=0, "n_pat_design"=1000, "method"="logrank")
 scenario_table_vars <- c(c("median_survival_trt", "median_survival_ctrl", "rmst_trt_6m", "rmst_ctrl_6m", "gAHR_6m", "AHR_6m", "rmst_trt_12m", "rmst_ctrl_12m", "gAHR_12m", "AHR_12m", "milestone_survival_trt_6m", "milestone_survival_ctrl_6m", "milestone_survival_trt_12m", "milestone_survival_ctrl_12m"))
@@ -42,7 +42,8 @@ combined_plot <- function(
     scales = "fixed",
     hlines = numeric(0),
     use_colours = NULL,
-    use_shapes  = NULL
+    use_shapes  = NULL,
+    yrange = c(NA_real_, NA_real_)
 ){
   
   stopifnot(split_var <= length(xvars))
@@ -83,6 +84,7 @@ combined_plot <- function(
     colour=method,
     shape=method
   )) +
+    ggplot2::annotate("rect", xmin=-Inf, xmax=Inf, ymin=yrange[1], ymax=yrange[2], colour="grey", alpha=0.5) +
     ggplot2::geom_line() +
     ggplot2::geom_point(size=4) +
     ggplot2::scale_x_continuous(
@@ -106,10 +108,12 @@ combined_plot <- function(
   data_plot2 <- data[!duplicated(do.call(interaction, data[,c("x", facet_x_vars)])), ]
   
   plot_2 <- lapply(xvars, \(xx){
-    data_plot2 <- data_plot2 |> 
-      within(
-        tmp_yvar <- factor(format(get(xx), digits=3))
-      )
+    
+    if(is.factor(data_plot2[, xx, drop=TRUE])){
+      data_plot2$tmp_yvar <- data_plot2[, xx, drop=TRUE]
+    } else {
+      data_plot2$tmp_yvar <- factor(format(data_plot2[, xx, drop=TRUE], digits=3))
+    }
     
     ggplot2::ggplot(data_plot2, ggplot2::aes(x=x, y=tmp_yvar, group=method)) +
       ggplot2::geom_step(linewidth=0.25) +
@@ -157,6 +161,14 @@ scenario_plot <- function(scenario, type){
   range_t  <- c(0, 1095.75)
   range_hr <- c(0.7, 1/0.7)
   range_s  <- c(0,1)
+  
+  if(nrow(scenario) == 0){
+    return(
+      ggplot(data=NULL) + 
+      geom_text(aes(x=0,y=0, label="No scenarios for selected parameter combination.")) + 
+      theme_void()
+    )
+  }
   
   # construct functions
   if(type %in% c("delayed", "crossing", "subgroup")){
@@ -305,8 +317,7 @@ ui <- fluidPage(
           ),
           uiOutput(
             outputId = "scenario_scenariofilter_ui"
-          ),
-          width=2
+          )
         ),
         mainPanel(
           actionButton(
@@ -321,8 +332,7 @@ ui <- fluidPage(
           ),
           tableOutput(
             "scenario_table"
-          ),
-          width=9
+          )
         )
       ),
       style="margin-top:1rem;"
@@ -348,8 +358,7 @@ ui <- fluidPage(
           ),
           uiOutput(
             outputId = "results_filters_ui"
-          ),
-          width=2
+          )
         ),
         mainPanel(
           actionButton(
@@ -362,7 +371,10 @@ ui <- fluidPage(
             width="100%",
             height="800px"
           ),
-          width=9
+          checkboxInput("hline0025", "horizontal line at 0.025 (nominal alpha)"),
+          checkboxInput("hline0031", "horizontal line at 0.031 (nominal alpha + CI)"),
+          checkboxInput("hline095",  "horizontal line at 0.95 (nominal CI coverage)"),
+          checkboxInput("rectCoverage", "ribbon from 0.9584 to 0.9412 (nominal coverage + CI)")
         )
       ),
       style="margin-top:1rem;"
@@ -465,13 +477,33 @@ server <- function(input, output) {
       tmp_data <- tmp_data[tmp_data[, i] == tmp_filter_values[i], ]
     }
     
+    hlines <- c()
+    if(input$hline0025){
+      hlines <- c(hlines, 0.025)
+    }
+    if(input$hline0031){
+      hlines <- c(hlines, 0.031)
+    }
+    if(input$hline095){
+      hlines <- c(hlines, 0.95)
+    }
+    
+    if(input$rectCoverage){
+      yrange=c(0.9412, 0.9584)
+    } else {
+      yrange = c(NA_real_, NA_real_)
+    }
+          
+          
     combined_plot(
       tmp_data,
       tmp_methods,
       tmp_xvars,
       tmp_yvar,
       tmp_cols,
-      tmp_rows
+      tmp_rows,
+      hlines = hlines,
+      yrange = yrange
     )
   }) |> bindEvent(input$results_draw)
   
@@ -520,7 +552,8 @@ server <- function(input, output) {
   
   output$scenario_plot <- renderPlot({
     scenario_plot(scenario_data(), input$scenarios_scenarioclass)
-  }) 
+  }) |> 
+    bindEvent(input$scenario_draw)
   
 
 # Tab Scenario: Table -----------------------------------------------------
