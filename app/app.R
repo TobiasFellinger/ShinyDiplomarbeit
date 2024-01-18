@@ -1,7 +1,7 @@
 
 # TODO: 
 # * change column names
-# * plot annotations for coverage (rect), rejection (hline)
+# * change window title
 
 # packages ----------------------------------------------------------------
 
@@ -161,6 +161,7 @@ scenario_plot <- function(scenario, type){
   range_t  <- c(0, 1095.75)
   range_hr <- c(0.7, 1/0.7)
   range_s  <- c(0,1)
+  breaks_t <- 365.25 * seq(0,36,by=6) / 12
   
   if(nrow(scenario) == 0){
     return(
@@ -201,7 +202,7 @@ scenario_plot <- function(scenario, type){
         )
       } else {
         funs_b <- miniPCH::pch_functions(
-          t = c(0, scenario$delay),
+          t = c(0, 365.25 * scenario$delay / 12),
           lambda = c(scenario$hazard_ctrl, scenario$hazard_trt)
         )
       }
@@ -214,7 +215,7 @@ scenario_plot <- function(scenario, type){
         )
       } else {
        funs_b <- miniPCH::pch_functions(
-         t = c(0, scneario$crossing),
+         t = c(0, 365.25 * scneario$crossing / 12),
          lambda = c(scenario$hazard_trt_before, scenario$hazard_trt_after)
        )
       }
@@ -257,20 +258,20 @@ scenario_plot <- function(scenario, type){
   plot_s <- ggplot(NULL) + 
     stat_function(aes(colour="control"  , lty="control"  ),   fun=funs_a$s) + 
     stat_function(aes(colour="treatment", lty="treatment"), fun=funs_b$s) + 
-    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") + 
+    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [m]", breaks=breaks_t, labels=\(x){12*x/365.25}) + 
     scale_y_continuous(limits=range_s, expand=expansion(0,0), name="survival")
   
   plot_h <- ggplot(NULL) + 
     stat_function(aes(colour="control"  , lty="control"  ),   fun=funs_a$h) + 
     stat_function(aes(colour="treatment", lty="treatment"), fun=funs_b$h) + 
-    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") +
+    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [m]", breaks=breaks_t, labels=\(x){12*x/365.25}) +
     scale_y_continuous(name="hazard") +
     expand_limits(y=0)
   
   plot_hr <- ggplot(NULL) + 
     stat_function(fun=hr) + 
     geom_hline(yintercept = 1, colour="darkgray") +
-    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [days]") +
+    scale_x_continuous(limits=range_t, expand=expansion(0,0), name="time [m]", breaks=breaks_t, labels=\(x){12*x/365.25}) +
     scale_y_continuous(limits=range_hr, expand=expansion(0,0.1), name="hazard ratio")
   
   my_colors <- palette.colors(3, "Okabe-Ito")[c(2,3)] |>
