@@ -1,7 +1,7 @@
 
 # TODO: 
 # * change column names
-# * plot annotations for coverage (rect), rejection (hline)
+# * change window title
 
 # packages ----------------------------------------------------------------
 

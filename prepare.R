@@ -5,8 +5,6 @@ library("tidyverse")
 # * calculate rejection from multiple columns
 # * rename columns
 # * delete all unused columns
-# 
-# * maybe: create own datasets for scenario plots with only one line per relevant scenario selected
 
 # read data ---------------------------------------------------------------
 
