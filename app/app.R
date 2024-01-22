@@ -1,8 +1,4 @@
 
-# TODO: 
-# * change column names
-# * change window title
-
 # packages ----------------------------------------------------------------
 
 library("shiny")
@@ -22,9 +18,20 @@ datasets <- readRDS(gzcon(url(paste0(my_url, "datasets.Rds"))))
 # shiny local
 # my_file <- "../"
 # datasets <- readRDS(paste0(my_file, "datasets.Rds"))
-exclude_from_scenario_vars <- c("recruitment", "random_withdrawal", "n_pat_design")
-filter_scenario_values <- c("recruitment"=0, "random_withdrawal"=0, "n_pat_design"=1000, "method"="logrank")
-scenario_table_vars <- c(c("median_survival_trt", "median_survival_ctrl", "rmst_trt_6m", "rmst_ctrl_6m", "gAHR_6m", "AHR_6m", "rmst_trt_12m", "rmst_ctrl_12m", "gAHR_12m", "AHR_12m", "milestone_survival_trt_6m", "milestone_survival_ctrl_6m", "milestone_survival_trt_12m", "milestone_survival_ctrl_12m"))
+exclude_from_scenario_vars <- c("recruitment time", "rate of random withdrawal", "number of patients")
+filter_scenario_values <- c("recruitment time"=0, "rate of random withdrawal"=0, "number of patients"=1000, "method"="logrank test")
+scenario_table_vars <- c("median survival in the treatment arm", "median survival in the control arm", 
+                         "RMST (6m) in the treatment arm", "RMST (6m) in the control arm", 
+                         "geometric average hazard ratio (6m)", "average hazard ratio (6m)", 
+                         "RMST (12m) in the treatment arm", "RMST (12m) in the control arm", 
+                         "geometric average hazard ratio (12m)", "average hazard ratio (12m)", 
+                         "milestone survival in the treatment arm (6m)", "milestone survival in the control arm (6m)", 
+                         "milestone survival in the treatment arm (12m)", "milestone survival in the control arm (12m)"
+)
+
+# preload miniPCH package -------------------------------------------------
+tmp <- miniPCH::pch_functions(t=0, lambda=1)
+tmp <- NULL
 
 # functions ---------------------------------------------------------------
 
@@ -298,7 +305,7 @@ scenario_plot <- function(scenario, type){
 # ui ----------------------------------------------------------------------
 
 ui <- fluidPage(
-  titlePanel(title="Simulation Results", windowTitle = "Simulation Results"),
+  titlePanel(title="Simulation Results, Master's Thesis Tobias Fellinger", windowTitle = "Sim Results Msc. Tobias Fellinger"),
   tabsetPanel(
 # Tab: Description --------------------------------------------------------
     tabPanel(
@@ -406,7 +413,7 @@ server <- function(input, output) {
       label = "Methods",
       choices = scenario_class()$methods,
       multiple = TRUE,
-      selected = c("logrank", "max_combo")
+      selected = c("logrank test", "max-combo test", "modestly wtd. t*=8m")
     )
   })
   
@@ -414,7 +421,7 @@ server <- function(input, output) {
     selectInput(
       inputId = "results_yvar",
       label = "Plot Variable",
-      selected = "rejection_0.025",
+      selected = "rejection rate, one sided alpha=0.025",
       choices = names(scenario_class()$data)
     )
   })
@@ -528,7 +535,6 @@ server <- function(input, output) {
     names(tmp_filter_values) <- tmp_filter
     
     tmp_filter_values <- c(tmp_filter_values, filter_scenario_values)
-    
     for(i in names(tmp_filter_values)){
       tmp_data <- tmp_data[tmp_data[, i] == tmp_filter_values[i], ]
     }
