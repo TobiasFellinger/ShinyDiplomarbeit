@@ -1,9 +1,6 @@
 library("SimNPH")
 library("tidyverse")
 
-# TODO: 
-# * calculate rejection from multiple columns
-
 # read data ---------------------------------------------------------------
 
 design_vars_all <- c("random_withdrawal", "n_pat_design", "recruitment")
@@ -99,11 +96,9 @@ rename_cols <- tibble::tribble(
   "milestone_survival_trt_12m",  "milestone survival in the treatment arm (12m)",          
   "milestone_survival_ctrl_12m", "milestone survival in the control arm (12m)",            
   "descriptive.n_pat",           "average number of patients",                             
-  "descriptive.max_followup",    "average max follow up time",                             
   "descriptive.evt",             "average number of events",                               
   "descriptive.evt_ctrl",        "average number of events in the control arm",            
   "descriptive.evt_trt",         "average number of events in the treatment arm",          
-  "descriptive.study_time",      "average length of study",                                
   "method",                      "method",                                                 
   "mean_est",                    "mean point estimate",                                    
   "median_est",                  "median point estimate",                                  
@@ -155,6 +150,10 @@ subgroup <- subgroup |>
   )
 
 
+# calculate rejection -----------------------------------------------------
+
+
+
 # prepare data for app ----------------------------------------------------
 
 prepare_data <- function(dataset, design_varnames){
@@ -165,7 +164,26 @@ prepare_data <- function(dataset, design_varnames){
     )
   
   # pivot longer
-  dataset <- results_pivot_longer(dataset)
+  dataset <- results_pivot_longer(dataset) |>
+  left_join(method_metadata, by = "method") |> # add metadata
+    mutate(
+      # one sided test based on CI
+      ci_based_one_sided_rejection = case_when(
+        direction == "lower" ~ 1 - null_upper,
+        direction == "higher" ~ 1 - null_lower,
+        TRUE ~ NA_real_
+      ),
+      # combine columsn with different names acros estimators/tests/gs-tests
+      # coalesce: take first value, if it is missing take second value
+      mean_n_pat = coalesce(mean_n_pat, n_pat),
+      mean_n_evt = coalesce(mean_n_evt, n_evt),
+      sd_n_pat   = coalesce(sd_n_pat, sd_npat),
+      sd_n_evt   = coalesce(sd_n_evt, sd_nevt),
+      study_time = coalesce(study_time, descriptive.study_time),
+      followup   = coalesce(followup, descriptive.max_followup),
+      rejection  = coalesce(rejection, rejection_0.025),
+      rejection  = coalesce(rejection, ci_based_one_sided_rejection)
+    )
   
   # rename methods
   stopifnot(all(dataset$method %in% method_metadata$method))

@@ -1,7 +1,4 @@
 
-# TODO: 
-# * change column names
-
 # packages ----------------------------------------------------------------
 
 library("shiny")
