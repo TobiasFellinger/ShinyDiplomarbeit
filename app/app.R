@@ -29,8 +29,9 @@ scenario_table_vars <- c("median survival in the treatment arm", "median surviva
                          "milestone survival in the treatment arm (12m)", "milestone survival in the control arm (12m)"
 )
 
-# preload miniPCH package -------------------------------------------------
+# call package functions once to load packages ----------------------------
 tmp <- miniPCH::pch_functions(t=0, lambda=1)
+tmp <- ggplot(NULL)
 tmp <- NULL
 
 # functions ---------------------------------------------------------------
