@@ -13,11 +13,11 @@ library("miniPCH")
 # shiny-live served with httpuv
 # my_url <- "http://127.0.0.1:7446/"
 # shiny-live on github pages
-# my_url <- "https://tobiasfellinger.github.io/ShinyDiplomarbeit/"
-# datasets <- readRDS(gzcon(url(paste0(my_url, "datasets.Rds"))))
+my_url <- "https://tobiasfellinger.github.io/ShinyDiplomarbeit/"
+datasets <- readRDS(gzcon(url(paste0(my_url, "datasets.Rds"))))
 # shiny local
-my_file <- "../"
-datasets <- readRDS(paste0(my_file, "datasets.Rds"))
+# my_file <- "../"
+# datasets <- readRDS(paste0(my_file, "datasets.Rds"))
 exclude_from_scenario_vars <- c("recruitment time", "rate of random withdrawal", "number of patients")
 filter_scenario_values <- c("recruitment time"=0, "rate of random withdrawal"=0, "number of patients"=1000, "method"="logrank test")
 scenario_table_vars <- c("median survival in the treatment arm", "median survival in the control arm", 
@@ -29,8 +29,9 @@ scenario_table_vars <- c("median survival in the treatment arm", "median surviva
                          "milestone survival in the treatment arm (12m)", "milestone survival in the control arm (12m)"
 )
 
-# preload miniPCH package -------------------------------------------------
+# call package functions once to load packages ----------------------------
 tmp <- miniPCH::pch_functions(t=0, lambda=1)
+tmp <- ggplot(NULL)
 tmp <- NULL
 
 # functions ---------------------------------------------------------------
