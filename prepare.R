@@ -9,7 +9,7 @@ design_vars_crossing    <- c("crossing", "hr_before", "hr_after", "median_surviv
 design_vars_progression <- c("hr_death_before_prog", "hr_after_prog_ctrl", "median_time_to_prog_ctrl", "hr_prog", "median_survival_before_prog", design_vars_all)
 design_vars_subgroup    <- c("hr_trt", "hr_subgroup_display", "prevalence", "median_survival_ctrl", design_vars_all)
 
-shhr_varnames <- c("hazard_ctrl", "prog_rate_ctrl", "hazard_after_prog", "hazard_trt", "delay", "hazard_trt_after", "hazard_trt_before", "hazard_subgroup", "prevalence", "prog_rate_trt")
+shhr_varnames <- c("hazard_ctrl", "prog_rate_ctrl", "hazard_after_prog", "hazard_trt", "delay", "hazard_trt_after", "hazard_trt_before", "hazard_subgroup", "prevalence", "prog_rate_trt", "crossing")
 names(shhr_varnames) <- shhr_varnames
 
 data_dir <- "../Diplomarbeit/Simulations/data/"

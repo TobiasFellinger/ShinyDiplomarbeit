@@ -223,7 +223,7 @@ scenario_plot <- function(scenario, type){
         )
       } else {
        funs_b <- miniPCH::pch_functions(
-         t = c(0, 365.25 * scneario$crossing / 12),
+         t = c(0, 365.25 * scenario$crossing / 12),
          lambda = c(scenario$hazard_trt_before, scenario$hazard_trt_after)
        )
       }
