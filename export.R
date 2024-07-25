@@ -3,7 +3,15 @@ tryCatch(fs::dir_delete("docs"), error=\(e){})
 
 source("prepare.R")
 
-shinylive::export("app", "docs")
+shinylive::export(
+  "app", 
+  "docs",
+  wasm_packages = TRUE,
+  package_cache = TRUE,
+  template_params = list(
+    title = "Master's Thesis, Simulation Results"
+  )
+)
 
 fs::file_copy("datasets.Rds", "docs")
 
